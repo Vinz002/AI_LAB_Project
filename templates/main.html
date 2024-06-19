@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Car Detector</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/@mdi/font@4.x/css/materialdesignicons.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/vuetify@3.6.6/dist/vuetify.min.css" rel="stylesheet" />
+</head>
+
+<body>
+  <div id="app"></div>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vuetify@3.6.6/dist/vuetify.min.js"></script>
+  <script type="text/x-template" id="app-template">
+      <v-app>
+        <v-container>
+          <v-row>
+            <v-col cols="12">
+              <v-card
+                prepend-icon="mdi-car-info"
+              >
+                <template #title>
+                  Car Detector
+                </template>
+              </v-card>
+            </v-col>
+            <v-col lg="8">
+              <v-card>
+                <v-card-text>
+              
+                  <v-file-input
+                    v-model="image"
+                    density="compact"
+                    variant="outlined"
+                    prepend-icon="mdi-image-outline"
+                    accept="image/*"
+                    label="File input"
+                    color="primary"
+                  >
+                    <template #append>
+                      <v-btn 
+                        icon="mdi-send-outline" 
+                        variant="text"
+                        :color="url ? 'primary' : undefined" 
+                        :disabled="!url || loading"
+                        @click=submit
+                      />
+                    </template>
+                  </v-file-input>
+
+                  <v-img :src="url"></v-img>
+                </v-card-text>
+              </v-card>
+            </v-col>
+            <v-col lg="4">
+              <v-card>
+                <template #title>
+                  Results
+                </template>
+                <template v-if="results.length > 0 && !loading">
+                  <v-list lines="two">
+                    <v-list-item
+                      v-for="result in results"
+                      :key="result.title || result.subtitle"
+                      :subtitle="result.subtitle"
+                      :title="result.title || 'No definitive answer'"
+                    >
+                      <template v-slot:prepend>
+                        <v-avatar color="grey-lighten-1">
+                          <v-icon color="white">{{ result.icon }}</v-icon>
+                        </v-avatar>
+                      </template>
+
+                      <template v-slot:append>
+                        <v-icon v-if="!result.title">
+                          mdi-alert-octagon-outline
+                        </v-icon>
+                      </template>
+                    </v-list-item>
+                  </v-list>
+                </template>
+                <template v-else-if="loading">
+                  <v-skeleton-loader type="list-item-avatar-two-line@6" />
+                </template>
+                <template v-else>
+                  <v-card-text>No data yet. Upload an image and click on the arrow next to it!</v-card-text>
+                </template>
+              </v-card>
+            </v-col>
+          </v-row>
+        </v-container>
+      </v-app>
+    </script>
+  <script>
+    const { createApp } = Vue;
+    const { createVuetify } = Vuetify;
+
+    const vuetify = createVuetify();
+
+    const app = createApp({
+      template: "#app-template",
+      data() {
+        return {
+          image: null,
+          loading: false,
+          results: [],
+        }
+      },
+      computed: {
+        url() {
+          return this.image ? URL.createObjectURL(this.image) : "";
+        },
+      },
+      methods: {
+        async submit() {
+          if (!this.url) return;
+
+          this.loading = true;
+          this.results = [];
+
+          const formData = new FormData();
+          formData.append('file', this.image);
+
+          try {
+            const response = await fetch('/api', {
+              method: 'POST',
+              body: formData,
+            });
+            const data = await response.json();
+            this.results = data.results;
+          } catch (error) {
+            console.error('Error:', error);
+          } finally {
+            this.loading = false;
+          }
+        },
+      },
+    })
+      .use(vuetify)
+      .mount("#app");
+  </script>
+</body>
+
+</html>

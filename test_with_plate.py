@@ -49,9 +49,9 @@ def predict_car_brand_and_license_plate(image_path):
     image = cv2.imread(image_path)
     image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     # image_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    remove_noise = cv2.bilateralFilter(image_rgb, 9, 75, 75)
+    #remove_noise = cv2.bilateralFilter(image_rgb, 9, 75, 75)
     # Convert the image to a PIL Image
-    pil_image = Image.fromarray(remove_noise)
+    pil_image = Image.fromarray(image_rgb)
     # Apply the defined transformations
     transformed_image = transform(pil_image)
     transformed_image = transformed_image.unsqueeze(0)  # Add batch dimension

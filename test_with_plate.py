@@ -4,7 +4,6 @@ import torch
 import torch.nn as nn
 import pandas as pd
 from torchvision import transforms, models
-from model import CarBrandModel
 from PIL import Image
 import string
 import easyocr
@@ -36,25 +35,23 @@ mobilenet.classifier[1] = nn.Linear(mobilenet.last_channel, num_classes)
 # Move model to the device
 model = mobilenet.to(device)
 model.load_state_dict(torch.load("best_model.pth"))
-# If you use cpu:
-# model.load_state_dict(torch.load('best_model.pth', map_location=torch.device("cpu")))
 model.eval()
 
 # Initialize the OCR reader
-reader = easyocr.Reader(["en", "de", "fr", "es", "it", "da"], gpu=True)
+reader = easyocr.Reader(["en", "de", "fr", "es", "it"], gpu=True)
 
 # Allowed list
-ALLOWED_LIST = string.ascii_uppercase + string.digits
+ALLOWED_LIST = string.ascii_uppercase + string.digits + string.whitespace
 
 
 def predict_car_brand_and_license_plate(image_path):
     # Read the image using OpenCV
     image = cv2.imread(image_path)
-    # Convert the image from BGR to grayscale
     image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     # image_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    remove_noise = cv2.bilateralFilter(image_rgb, 9, 75, 75)
     # Convert the image to a PIL Image
-    pil_image = Image.fromarray(image_rgb)
+    pil_image = Image.fromarray(remove_noise)
     # Apply the defined transformations
     transformed_image = transform(pil_image)
     transformed_image = transformed_image.unsqueeze(0)  # Add batch dimension
@@ -67,21 +64,21 @@ def predict_car_brand_and_license_plate(image_path):
         predicted_label = idx_to_label[predicted.item()]
 
     # Detect license plate region using EasyOCR
-    results = reader.readtext(
-        image, allowlist=ALLOWED_LIST, detail=0, paragraph=False, contrast_ths=0.1
-    )
+    results = reader.readtext(image, allowlist=ALLOWED_LIST, detail=0, paragraph=False, contrast_ths=0.1)
+    
     license_plate_text = None
     for result in results:
-        if len(result) > 5:  # Assuming license plate has at least 5 characters
+        # Assuming license plate has at least 5 characters and at most 9 and at least 1 number
+        if 5 < len(result) <= 9 and any(char.isdigit() for char in result):  
             license_plate_text = result
             break
-
+ 
     return predicted_label, license_plate_text, image_rgb
 
 
 if __name__ == "__main__":
     # Example usage
-    image_path = "test5.jpg"
+    image_path = "test11.jpg"
     predicted_brand, license_plate_text, result_image = (
         predict_car_brand_and_license_plate(image_path)
     )

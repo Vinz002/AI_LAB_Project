@@ -62,21 +62,30 @@ def predict_car_brand_and_license_plate(image_path):
         predicted_label = idx_to_label[predicted.item()]
 
     # Detect license plate region using EasyOCR
-    results = reader.readtext(image, allowlist=ALLOWED_LIST, detail=0, paragraph=False, contrast_ths=0.1)
+    results = reader.readtext(image, allowlist=ALLOWED_LIST, detail=1, paragraph=False, contrast_ths=0.1)
     
     license_plate_text = None
+    license_plate_bbox = None
     for result in results:
+        text, bbox = result[1], result[0]
         # Assuming license plate has at least 5 characters and at most 9 and at least 1 number
-        if 5 < len(result) <= 9 and any(char.isdigit() for char in result):  
-            license_plate_text = result
+        if 5 < len(text) <= 9 and any(char.isdigit() for char in text):  
+            license_plate_text = text
+            license_plate_bbox = bbox
             break
- 
+
+    # Draw a rectangle around the license plate
+    if license_plate_bbox:
+        top_left = tuple(map(int, license_plate_bbox[0]))
+        bottom_right = tuple(map(int, license_plate_bbox[2]))
+        image_rgb = cv2.rectangle(image_rgb, top_left, bottom_right, (0, 255, 0), 2)
+
     return predicted_label, license_plate_text, image_rgb
 
 
 if __name__ == "__main__":
     # Example usage
-    image_path = "test11.jpg"
+    image_path = "show/test12.jpg"
     predicted_brand, license_plate_text, result_image = (
         predict_car_brand_and_license_plate(image_path)
     )

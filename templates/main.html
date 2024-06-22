@@ -67,7 +67,7 @@
                       v-for="result in results"
                       :key="result.id"
                       :subtitle="result.subtitle"
-                      :title="result.title || 'No definitive answer'"
+                      :title="result.title || getError(result.id)"
                     >
                       <template v-slot:prepend>
                         <v-avatar color="grey-lighten-1">
@@ -141,6 +141,12 @@
             this.loading = false;
           }
         },
+        getError(key) {
+          return {
+            brand: "Brand could not be determined",
+            licensePlate: "No license plate found",
+          }[key];
+        }
       },
     })
       .use(vuetify)

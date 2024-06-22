@@ -85,7 +85,7 @@ def predict_car_brand_and_license_plate(image_path):
 
 if __name__ == "__main__":
     # Example usage
-    image_path = "show/test12.jpg"
+    image_path = "show/test103.jpg"
     predicted_brand, license_plate_text, result_image = (
         predict_car_brand_and_license_plate(image_path)
     )

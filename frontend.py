@@ -1,5 +1,9 @@
-from flask import Flask, request, jsonify, send_from_directory
+from uuid import uuid4
+
+from flask import Flask, request, jsonify, send_from_directory, url_for
 import os
+
+from PIL import Image
 
 from test_with_plate import predict_car_brand_and_license_plate
 
@@ -12,6 +16,14 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 # Ensure the upload folder exists
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
+
+# Set the result folder
+RESULT_FOLDER = 'static'
+app.config['RESULT_FOLDER'] = RESULT_FOLDER
+
+# Ensure the upload folder exists
+if not os.path.exists(RESULT_FOLDER):
+    os.makedirs(RESULT_FOLDER)
 
 
 @app.route('/')
@@ -38,14 +50,24 @@ def api():
 
         predicted_brand, license_plate_text, result_image = predict_car_brand_and_license_plate(file_path)
 
+        result_filename = str(uuid4()) + ".png"
+        result_path = os.path.join(app.config['RESULT_FOLDER'], result_filename)
+        result_image = Image.fromarray(result_image)
+        result_image.save(result_path)
+
         print("Prediction finished")
 
         results = [
-            {"title": predicted_brand, "subtitle": "Car Brand", "icon": "mdi-car-hatchback"},
-            {"title": license_plate_text, "subtitle": "License Plate", "icon": "mdi-alphabetical-variant"},
+            {"id": "brand", "title": predicted_brand, "subtitle": "Car Brand", "icon": "mdi-car-hatchback"},
+            {"id": "licensePlate", "title": license_plate_text, "subtitle": "License Plate",
+             "icon": "mdi-alphabetical-variant"},
         ]
 
-        return jsonify({'message': 'File successfully uploaded', 'filename': file.filename, 'results': results})
+        return jsonify({
+            'message': 'File successfully uploaded',
+            'filename': url_for(RESULT_FOLDER, filename=result_filename),
+            'results': results,
+        })
 
 
 if __name__ == '__main__':

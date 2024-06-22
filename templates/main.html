@@ -39,6 +39,7 @@
                     accept="image/*"
                     label="File input"
                     color="primary"
+                    @change="resultUrl = null"
                   >
                     <template #append>
                       <v-btn 
@@ -51,7 +52,7 @@
                     </template>
                   </v-file-input>
 
-                  <v-img :src="url"></v-img>
+                  <v-img :src="resultUrl || url"></v-img>
                 </v-card-text>
               </v-card>
             </v-col>
@@ -64,7 +65,7 @@
                   <v-list lines="two">
                     <v-list-item
                       v-for="result in results"
-                      :key="result.title || result.subtitle"
+                      :key="result.id"
                       :subtitle="result.subtitle"
                       :title="result.title || 'No definitive answer'"
                     >
@@ -107,6 +108,7 @@
           image: null,
           loading: false,
           results: [],
+          resultUrl: null,
         }
       },
       computed: {
@@ -120,6 +122,7 @@
 
           this.loading = true;
           this.results = [];
+          this.resultUrl = null;
 
           const formData = new FormData();
           formData.append('file', this.image);
@@ -131,6 +134,7 @@
             });
             const data = await response.json();
             this.results = data.results;
+            this.resultUrl = data.filename;
           } catch (error) {
             console.error('Error:', error);
           } finally {

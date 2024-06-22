@@ -35,6 +35,8 @@ mobilenet.classifier[1] = nn.Linear(mobilenet.last_channel, num_classes)
 # Move model to the device
 model = mobilenet.to(device)
 model.load_state_dict(torch.load("best_model.pth"))
+# If you use cpu:
+# model.load_state_dict(torch.load('best_model.pth', map_location=torch.device("cpu")))
 model.eval()
 
 # Initialize the OCR reader

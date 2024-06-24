@@ -3,7 +3,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 
 # Define paths
-data_dir = 'D:\PROGRAMMI PY\AI-LAB\dataset\Dataset_AI_LAB_Project\dataset\imgs'
+data_dir = 'dataset\imgs'
 output_csv = 'data_labels.csv'
 split_ratio = 0.2  # 20% test, 80% train
 
